@@ -9,7 +9,7 @@
         <setting label="Default Movie Player" type="text" subsetting="true" id="moviesdefault" enable="false" default="None"/>
         <setting label="Default TV Show Player" type="text" subsetting="true" id="tvshowsdefault" enable="false" default="None"/>
 		<setting label="Total setup Done" id="total_setup_done" type="bool" default="false" visible="false"/>
-        <setting id="flatten.tvshows" type="bool" label="Flaten TV Shows" default="false" />
+		<setting id="flatten.tvshows" type="enum" label="Flatten TV Show Seasons" values="Never|If only one Season|Always" default="1" />
 		<setting label="Library" type="lsep"/>
 		<setting label="Enable library updates?" id="library_updates" type="bool" default="true"/>
 		<setting label="Force library update..." type="action" subsetting="true" action="RunPlugin(plugin://plugin.video.openmeta/update_library_from_settings)" visible="eq(-1,true)"/>

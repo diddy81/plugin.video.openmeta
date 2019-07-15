@@ -31,10 +31,7 @@ SORTRAKT = [
 
 def list_trakt_tvshows(results, pages, page):
 	genres_dict = dict([(x['slug'], x['name']) for x in Trakt.get_genres('shows')])
-	try:
-		shows = [meta_info.get_tvshow_metadata_trakt(item['show'], genres_dict) for item in results]
-	except KeyError:
-		shows = [meta_info.get_tvshow_metadata_trakt(item, genres_dict) for item in results]
+	shows = [meta_info.get_tvshow_metadata_trakt(item['show'], genres_dict) for item in results]
 	items = [make_tvshow_item(show) for show in shows if show.get('tvdb_id')]
 	page = int(page)
 	pages = int(pages)
@@ -226,12 +223,23 @@ def tv_play_by_name_choose_player(name, season, episode, lang, usedefault='False
 
 @plugin.route('/tv/tvdb/<id>/')
 def tv_tvshow(id):
-	flatten = plugin.get_setting('flatten.tvshows', bool)
-	if not flatten:
-		plugin.set_content('seasons')
-	else:
+	flatten = plugin.get_setting('flatten.tvshows', int)
+	if flatten == 2:
 		plugin.set_content('episodes')
-	return plugin.finish(items=list_seasons_tvdb(id, flatten), sort_methods=SORT)
+		action = 'all'
+	elif flatten == 1:		
+		id = int(id)
+		show = TVDB[id]
+		if len(show.items()) == 1 or (len(show.items()) == 2 and show.items()[1][0] == 1):
+			plugin.set_content('episodes')
+			action = 'one'
+		else:
+			plugin.set_content('seasons')
+			action = 'none'
+	else:
+		plugin.set_content('seasons')
+		action = 'none'
+	return plugin.finish(items=list_seasons_tvdb(id, action), sort_methods=SORT)
 
 
 @plugin.route('/tv/tvdb/<id>/<season_num>/')
@@ -521,7 +529,7 @@ def list_seasons_tvdb(id, flatten):
 		elif not season.has_aired(flexible=False):
 			continue
 		season_info = meta_info.get_season_metadata_tvdb(show_info, season)
-		if not flatten:
+		if flatten == 'none':
 			if xbmc.getCondVisibility('system.hasaddon(script.extendedinfo)'):
 				context_menu = [
 					('OpenInfo', 'RunScript(script.extendedinfo,info=seasoninfo,tvshow=%s,season=%s)' % (show_info['name'], season_num))]
@@ -537,8 +545,10 @@ def list_seasons_tvdb(id, flatten):
 					'poster': season_info['poster'],
 					'fanart': season_info['fanart']
 				})
-		else:
+		elif flatten == 'all':
 			items += list_episodes_tvdb(id, season_num)
+	if flatten == 'one':
+		items = list_episodes_tvdb(id, '1')
 	return items
 
 @plugin.cached(TTL=60)
@@ -618,14 +628,6 @@ def trakt_tv_next_episodes(raw=False):
 @plugin.route('/my_trakt/tv_lists/tv/watchlist')
 def trakt_tv_watchlist(raw=False):
 	result = Trakt.get_watchlist('shows')
-	if raw:
-		return result
-	else:
-		return list_trakt_tvshows(result, '1', '1')
-
-@plugin.route('/my_trakt/tv_lists/tv/recommendations')
-def trakt_tv_recommendations(raw=False):
-	result = Trakt.get_recommendations('shows')
 	if raw:
 		return result
 	else:

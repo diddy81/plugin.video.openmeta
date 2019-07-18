@@ -31,7 +31,10 @@ SORTRAKT = [
 
 def list_trakt_tvshows(results, pages, page):
 	genres_dict = dict([(x['slug'], x['name']) for x in Trakt.get_genres('shows')])
-	shows = [meta_info.get_tvshow_metadata_trakt(item['show'], genres_dict) for item in results]
+	try:
+		shows = [meta_info.get_tvshow_metadata_trakt(item['show'], genres_dict) for item in results]
+	except KeyError:
+		shows = [meta_info.get_tvshow_metadata_trakt(item, genres_dict) for item in results]
 	items = [make_tvshow_item(show) for show in shows if show.get('tvdb_id')]
 	page = int(page)
 	pages = int(pages)
@@ -628,6 +631,14 @@ def trakt_tv_next_episodes(raw=False):
 @plugin.route('/my_trakt/tv_lists/tv/watchlist')
 def trakt_tv_watchlist(raw=False):
 	result = Trakt.get_watchlist('shows')
+	if raw:
+		return result
+	else:
+		return list_trakt_tvshows(result, '1', '1')
+
+@plugin.route('/my_trakt/tv_lists/tv/recommendations')
+def trakt_tv_recommendations(raw=False):
+	result = Trakt.get_recommendations('shows')
 	if raw:
 		return result
 	else:

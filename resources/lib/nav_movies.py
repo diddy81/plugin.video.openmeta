@@ -531,10 +531,18 @@ def make_movie_item(movie_info):
 	if enablefanart:
 		try:
 			art = get_fanarttv_art(id)
+			art = checkart(art)
 			movieitem.update(art)
 		except:
 			pass
 	return movieitem
+
+def checkart(item):
+	art = {}
+	for key, val in item.items():
+		if val != '':
+			art.update({key: val})
+	return art
 
 def get_fanarttv_art(id):
 	return fanarttv.get(id, 'movies')

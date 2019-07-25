@@ -371,7 +371,6 @@ def list_tvshows(response):
 	return items
 
 def list_trakt_episodes(result):
-	from resources.lib.TheTVDB import TVDB
 	genres_dict = dict([(x['slug'], x['name']) for x in Trakt.get_genres('shows')])
 	items = []
 	for item in result:
@@ -381,6 +380,10 @@ def list_trakt_episodes(result):
 			episode = item
 		if 'show' in item:
 			show = item['show']
+		try:
+			show_id = item['show']['ids']['tvdb']
+		except:
+			show_id = item['ids'].get('tvdb')
 		try:
 			id = episode['show']['ids']['tvdb']
 		except:
@@ -413,7 +416,7 @@ def list_trakt_episodes(result):
 		episode_info = meta_info.get_episode_metadata_trakt(info, episode)
 		episode_info['title'] = '%s (%02dx%02d): %s' % (tvshow_title, season_num, episode_num, episode_title)
 		context_menu = []
-		showdata = TVDB[int(id)]
+		showdata = TVDB[int(show_id)]
 		extradata = play_tvshows.get_episode_parameters(showdata, season_num, episode_num)
 		episodeitem	= {
 				'label': episode_info['title'],

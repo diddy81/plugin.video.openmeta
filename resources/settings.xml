@@ -10,6 +10,7 @@
         <setting label="Default TV Show Player" type="text" subsetting="true" id="tvshowsdefault" enable="false" default="None"/>
 		<setting label="Total setup Done" id="total_setup_done" type="bool" default="false" visible="false"/>
 		<setting label="Include TV Show Specials" id="include_specials" type="bool" default="false"/>
+		<setting label="Include Count/Watched Data" id="countenabled" type="bool" default="true"/>
 		<setting id="flatten.tvshows" type="enum" label="Flatten TV Show Seasons" values="Never|If only one Season|Always" default="1" />
 		<setting id="enablefanart" type="bool" label="Enable Fanart" default="true" />
 		<setting label="Library" type="lsep"/>

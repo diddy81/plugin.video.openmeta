@@ -162,6 +162,9 @@ def get_hidden_items(type):
 def get_collection(type):
 	return call_trakt('sync/collection/%s?extended=full' % type)
 
+def get_movie_history(id):
+	return call_trakt('users/me/history/movies/%s' % id)
+
 def get_lists():
 	return call_trakt('users/me/lists')
 
@@ -190,6 +193,14 @@ def get_genres(type):
 @plugin.cached(TTL=60, cache='Trakt')
 def get_show(id):
 	return call_trakt('shows/%s' % id)
+
+@plugin.cached(TTL=60, cache='Trakt')
+def get_show_play_count(id):
+	return call_trakt('shows/%s/progress/watched' % id)
+
+@plugin.cached(TTL=60, cache='Trakt')
+def get_show_play_count_specials(id):
+	return call_trakt('shows/%s/progress/watched?specials=true' % id)
 
 def get_latest_episode(id):
 	return call_trakt('shows/%s/last_episode' % id)

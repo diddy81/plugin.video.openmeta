@@ -14,6 +14,8 @@ from resources.lib.xswift2 import plugin
 
 
 enablefanart = plugin.get_setting('enablefanart', bool)
+countenabled = plugin.get_setting('countenabled', bool)
+traktenabled = True if plugin.get_setting('trakt_access_token', unicode) != '' else False
 SORT = [
 	xbmcplugin.SORT_METHOD_UNSORTED,
 	xbmcplugin.SORT_METHOD_LABEL,
@@ -515,6 +517,18 @@ def make_movie_item(movie_info):
 	else:
 		context_menu = [
 			('Add to library','RunPlugin(%s)' % plugin.url_for('movies_add_to_library', src=src, id=id))]
+	try:
+		if traktenabled and countenabled:
+			if 'trakt_id' in movie_info.keys() and movie_info['trakt_id'] != '':
+				movie_id = movie_info['trakt_id']
+			elif tmdb_id != '':
+				movie_id = Trakt.find_trakt_ids('tmdb', tmdb_id, 'movie')['trakt']
+			else:
+				movie_id = Trakt.find_trakt_ids('imdb', imdb_id, 'movie')['trakt']
+			playdata = Trakt.get_movie_history(movie_id)
+			movie_info.update({'playcount': len([k for d in playdata for k in d.keys() if k == 'watched_at'])})
+	except:
+		pass
 	movieitem = {
 		'label': movie_info['title'],
 		'path': plugin.url_for('movies_play', src=src, id=id, usedefault=True),

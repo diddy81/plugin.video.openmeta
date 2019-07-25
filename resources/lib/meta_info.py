@@ -45,7 +45,7 @@ def get_trakt_movie_metadata(movie, genres_dict=None):
 	if not info['playcount'] and movie.get('watched'):
 		info['playcount'] = 1
 	info['tmdb'] = movie['ids'].get('tmdb')
-	info['trakt_id'] = movie['ids'].get('trakt_id')
+	info['trakt_id'] = movie['ids'].get('trakt')
 	info['imdbnumber'] = movie['ids'].get('imdb')
 	info['imdb_id'] = movie['ids'].get('imdb')
 	info['mediatype'] = 'movie'

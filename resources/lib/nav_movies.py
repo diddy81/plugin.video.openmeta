@@ -545,7 +545,7 @@ def checkart(item):
 	return art
 
 def get_fanarttv_art(id):
-	return fanarttv.get(id, 'movies', False)
+	return fanarttv.get(id, 'movies')
 
 @plugin.route('/my_trakt/movie_lists/movies/recommendations')
 def trakt_movies_recommendations(raw=False):

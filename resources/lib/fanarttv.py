@@ -47,7 +47,7 @@ def get_query(art):
     return result
 
 @plugin.cached(TTL=60*24*7, cache='Fanart')
-def get(remote_id, query, season):
+def get(remote_id, query, season=False):
 
     art = base_url % (query, remote_id)
     headers = {'client-key': client_key, 'api-key': api_key}

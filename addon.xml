@@ -21,6 +21,10 @@
 				<label>OpenMeta - Choose Player</label>
 				<visible>String.IsEqual(ListItem.dbtype,movie) | String.IsEqual(ListItem.dbtype,episode)</visible>
 			</item>
+			<item library="browseseries.py">
+                <label>Browse Series</label>
+                <visible>String.StartsWith(ListItem.path,plugin://plugin.video.openmeta/)+String.IsEqual(ListItem.dbtype,episode)</visible>
+            </item>
 		</menu>
 	</extension>
 	<extension point="xbmc.addon.metadata">

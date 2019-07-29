@@ -5,11 +5,16 @@
 		<setting label="Players URL" id="players_update_url" type="text" default="http://bit.ly/openplayers"/>
 		<setting label="Install or update players from URL..." type="action" subsetting="true" option="close" enable="!eq(-1,)" action="RunPlugin(plugin://plugin.video.openmeta/update_players)"/>
 		<setting label="Total setup..." option="close" type="action" action="RunPlugin(plugin://plugin.video.openmeta/setup/total)"/>
+        <setting label="Movies Default Play Action" type="enum" id="movies_default_action" values="Play|OpenInfo" default="0"/>
+        <setting label="Episodes Default Play Action" type="enum" id="tvshows_default_action" values="Play|OpenInfo(TV Show Info)|OpenInfo(Episode Info)" default="0"/>
 		<setting label="Set Default Players" type="action" action="RunPlugin(plugin://plugin.video.openmeta/defaultplayer)"/>
         <setting label="Default Movie Player" type="text" subsetting="true" id="moviesdefault" enable="false" default="None"/>
         <setting label="Default TV Show Player" type="text" subsetting="true" id="tvshowsdefault" enable="false" default="None"/>
 		<setting label="Total setup Done" id="total_setup_done" type="bool" default="false" visible="false"/>
-		<setting id="flatten.tvshows" type="enum" label="Flatten TV Show Seasons" values="Never|If only one Season|Always" default="1" />
+		<setting label="Include TV Show Specials" id="include_specials" type="bool" default="false"/>
+		<setting label="Show Unwatched Counts" id="countenabled" type="bool" default="true"/>
+		<setting label="Flatten TV Show Seasons" id="flatten.tvshows" type="enum" values="Never|If only one Season|Always" default="1"/>
+		<setting label="Enable Fanart" id="enablefanart" type="bool" default="true" />
 		<setting label="Library" type="lsep"/>
 		<setting label="Enable library updates?" id="library_updates" type="bool" default="true"/>
 		<setting label="Force library update..." type="action" subsetting="true" action="RunPlugin(plugin://plugin.video.openmeta/update_library_from_settings)" visible="eq(-1,true)"/>
@@ -38,5 +43,7 @@
         <setting label="API key" id="tmdb_api" type="text" default=""/>
 		<setting label="TVDB (v1), Keys for the v2 of TVDB's API will not work" type="lsep"/>
         <setting label="API key" id="tvdb_api" type="text" default=""/>
+		<setting label="FANART.TV" type="lsep"/>
+        <setting label="API key" id="fanart.apikey" type="text" default=""/>
 	</category>
 </settings>

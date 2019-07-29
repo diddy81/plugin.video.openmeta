@@ -9,9 +9,14 @@ from resources.lib import meta_info
 from resources.lib import lib_tvshows
 from resources.lib import play_tvshows
 from resources.lib.TheTVDB import TVDB
+from resources.lib import fanarttv
 from resources.lib.xswift2 import plugin
 
 
+enablefanart = plugin.get_setting('enablefanart', bool)
+specialsenabled = plugin.get_setting('include_specials', bool)
+countenabled = plugin.get_setting('countenabled', bool)
+traktenabled = True if plugin.get_setting('trakt_access_token', unicode) != '' else False
 SORT = [
 	xbmcplugin.SORT_METHOD_UNSORTED,
 	xbmcplugin.SORT_METHOD_LABEL,
@@ -51,7 +56,7 @@ def list_trakt_tvshows(results, pages, page):
 			})
 	return plugin.finish(items=items, sort_methods=SORT)
 
-@plugin.route('/tv/trakt_watched/<page>')
+@plugin.route('/tv/trakt_watched/<page>/')
 def trakt_tv_watched(page, raw=False):
 	results, pages = Trakt.get_watched_shows_paginated(page)
 	if raw:
@@ -59,7 +64,7 @@ def trakt_tv_watched(page, raw=False):
 	else:
 		return list_trakt_tvshows(results, pages, page)
 
-@plugin.route('/tv/trakt_netflix_collected/<page>')
+@plugin.route('/tv/trakt_netflix_collected/<page>/')
 def trakt_netflix_tv_collected(page, raw=False):
 	results, pages = Trakt.get_netflix_collected_shows(page)
 	if raw:
@@ -67,7 +72,7 @@ def trakt_netflix_tv_collected(page, raw=False):
 	else:
 		return list_trakt_tvshows(results, pages, page)
 
-@plugin.route('/tv/trakt_collected/<page>')
+@plugin.route('/tv/trakt_collected/<page>/')
 def trakt_tv_collected(page, raw=False):
 	results, pages = Trakt.get_collected_shows_paginated(page)
 	if raw:
@@ -75,7 +80,7 @@ def trakt_tv_collected(page, raw=False):
 	else:
 		return list_trakt_tvshows(results, pages, page)
 
-@plugin.route('/tv/trakt_popular/<page>')
+@plugin.route('/tv/trakt_popular/<page>/')
 def tv_trakt_popular(page, raw=False):
 	results, pages = Trakt.get_popular_shows_paginated(page)
 	if raw:
@@ -96,7 +101,7 @@ def tv_trakt_popular(page, raw=False):
 				})
 		return plugin.finish(items=items, sort_methods=SORT)
 
-@plugin.route('/tv/trakt_trending/<page>')
+@plugin.route('/tv/trakt_trending/<page>/')
 def trakt_tv_trending(page, raw=False):
 	results, pages = Trakt.get_trending_shows_paginated(page)
 	if raw:
@@ -104,7 +109,7 @@ def trakt_tv_trending(page, raw=False):
 	else:
 		list_trakt_tvshows(results, pages, page)
 
-@plugin.route('/tv/tvdb_search_term/<term>/<page>')
+@plugin.route('/tv/tvdb_search_term/<term>/<page>/')
 def tvdb_tv_search_term(term, page):
 	search_results = TVDB.search(term, language='en')
 	items = []
@@ -132,7 +137,7 @@ def list_trakt_search_items(results, pages, page):
 			})
 	return items
 
-@plugin.route('/tv/trakt_search_term/<term>/<page>')
+@plugin.route('/tv/trakt_search_term/<term>/<page>/')
 def trakt_tv_search_term(term, page):
 	results, pages = Trakt.search_for_tvshow_paginated(term, page)
 	return list_trakt_search_items(results, pages, page)
@@ -149,7 +154,7 @@ def tmdb_tv_genres():
 		} for id, name in genres.items()], key=lambda k: k['label'])
 	return items
 
-@plugin.cached_route('/tv/genre/<id>/<page>', TTL=60)
+@plugin.cached_route('/tv/genre/<id>/<page>/', TTL=60)
 def tmdb_tv_genre(id, page, raw=False):
 	from resources.lib.TheMovieDB import Discover
 	result = Discover().tv(with_genres=id, page=page, language='en')
@@ -158,7 +163,7 @@ def tmdb_tv_genre(id, page, raw=False):
 	else:
 		return list_tvshows(result)
 
-@plugin.cached_route('/tv/tmdb_now_playing/<page>', TTL=60)
+@plugin.cached_route('/tv/tmdb_now_playing/<page>/', TTL=60)
 def tmdb_tv_on_the_air(page, raw=False):
 	from resources.lib.TheMovieDB import TV
 	result = TV().on_the_air(page=page, language='en')
@@ -167,7 +172,7 @@ def tmdb_tv_on_the_air(page, raw=False):
 	else:
 		return list_tvshows(result)
 
-@plugin.cached_route('/tv/tmdb_most_popular/<page>', TTL=60)
+@plugin.cached_route('/tv/tmdb_most_popular/<page>/', TTL=60)
 def tmdb_tv_most_popular(page, raw=False):
 	from resources.lib.TheMovieDB import TV
 	result = TV().popular(page=page, language='en')
@@ -210,7 +215,17 @@ def tv_play_choose_player(id, season, episode, usedefault):
 
 @plugin.route('/tv/play/<id>/<season>/<episode>')
 def tv_play(id, season, episode, usedefault='True'):
-	play_tvshows.play_episode(id, season, episode, usedefault)
+	playaction = plugin.get_setting('tvshows_default_action', int)
+	if playaction == 1 and xbmc.getCondVisibility('system.hasaddon(script.extendedinfo)') and not plugin.getProperty('infodialogs.active'):
+		from resources.lib.play_base import action_cancel
+		action_cancel()
+		xbmc.executebuiltin('RunScript(script.extendedinfo,info=extendedtvinfo,tvdb_id=%s)' % (id))
+	elif playaction == 2 and xbmc.getCondVisibility('system.hasaddon(script.extendedinfo)') and not plugin.getProperty('infodialogs.active'):
+		from resources.lib.play_base import action_cancel
+		action_cancel()
+		xbmc.executebuiltin('RunScript(script.extendedinfo,info=extendedepisodeinfo,tvdb_id=%s,season=%s,episode=%s)' % (id, season, episode))
+	else:
+		play_tvshows.play_episode(id, season, episode, usedefault)
 
 @plugin.route('/tv/play_by_name/<name>/<season>/<episode>/<lang>', options={'lang': 'en'})
 def tv_play_by_name(name, season, episode, lang, usedefault='True'):
@@ -379,6 +394,10 @@ def list_trakt_episodes(result):
 		if 'show' in item:
 			show = item['show']
 		try:
+			show_id = item['show']['ids']['tvdb']
+		except:
+			show_id = item['ids'].get('tvdb')
+		try:
 			id = episode['show']['ids']['tvdb']
 		except:
 			id = episode['ids'].get('tvdb')
@@ -410,8 +429,23 @@ def list_trakt_episodes(result):
 		episode_info = meta_info.get_episode_metadata_trakt(info, episode)
 		episode_info['title'] = '%s (%02dx%02d): %s' % (tvshow_title, season_num, episode_num, episode_title)
 		context_menu = []
-		items.append(
-			{
+		showdata = TVDB[int(show_id)]
+		extradata = play_tvshows.get_episode_parameters(showdata, season_num, episode_num)
+		properties = {}
+		try:
+			if traktenabled and countenabled:
+				playdata = get_show_play_count(info['trakt_id'])
+				season_index = nav_base.get_play_count_info(playdata, season_num)
+				properties = {
+								'TotalSeasons': len(playdata['seasons']),
+								'TotalEpisodes': playdata['seasons'][season_index]['aired'],
+								# 'WatchedEpisodes': playdata['seasons'][season_index]['completed'],
+								# 'UnWatchedEpisodes': playdata['seasons'][season_index]['aired'] - playdata['seasons'][season_index]['completed']
+							}
+				episode_info.update({'playcount': nav_base.get_play_count_info(playdata, season_num, episode_num)})
+		except:
+			pass
+		episodeitem	= {
 				'label': episode_info['title'],
 				'path': plugin.url_for('tv_play', id=id, season=season_num, episode=episode_num, usedefault=True),
 				'context_menu': context_menu,
@@ -419,10 +453,20 @@ def list_trakt_episodes(result):
 				'is_playable': True,
 				'info_type': 'video',
 				'stream_info': {'video': {}},
-				'thumbnail': episode_info['poster'],
-				'poster': episode_info['poster'],
+				'properties': properties,
+				'thumbnail': extradata['thumbnail'],
+				'poster': extradata['poster'],
 				'fanart': episode_info['fanart']
-			})
+			}
+
+		if enablefanart:
+			try:
+				art = get_fanarttv_art(info['tvdb_id'], query='episode', season=season_num)
+				art = checkart(art)
+				episodeitem.update(art)
+			except:
+				pass
+		items.append(episodeitem)
 	return plugin.finish(items=items, sort_methods=SORTRAKT, cache_to_disc=False)
 
 def build_tvshow_info(tvdb_show, tmdb_show=None):
@@ -508,7 +552,23 @@ def make_tvshow_item(info):
 	else:
 		context_menu = [
 			('Add to library', 'RunPlugin(%s)' % plugin.url_for('tv_add_to_library', id=tvdb_id))]
-	return {
+	properties = {}
+	try:
+		if traktenabled and countenabled:
+			if 'trakt_id' in info.keys() and info['trakt_id'] != '':
+				id = info['trakt_id']
+			else:
+				id = Trakt.find_trakt_ids('tvdb', tvdb_id, 'show')['trakt']
+			playdata = get_show_play_count(id)
+			properties = {'TotalSeasons': len(playdata['seasons']),
+							'TotalEpisodes': playdata['aired'],
+							'WatchedEpisodes': playdata['completed'],
+							'UnWatchedEpisodes': playdata['aired'] - playdata['completed']}
+			if properties['UnWatchedEpisodes'] == 0:
+				info.update({'playcount': 1})
+	except:
+		pass
+	showitem = {
 		'label': text.to_utf8(info['title']),
 		'path': plugin.url_for('tv_tvshow', id=tvdb_id),
 		'context_menu': context_menu,
@@ -517,8 +577,23 @@ def make_tvshow_item(info):
 		'fanart': info['fanart'],
 		'info_type': 'video',
 		'stream_info': {'video': {}},
+		'properties': properties,
 		'info': info
 		}
+	if enablefanart:
+		try:
+			art = get_fanarttv_art(tvdb_id, query='show')
+			art = checkart(art)
+			showitem.update(art)
+		except:
+			pass
+	return showitem
+
+def get_show_play_count(id):
+	if specialsenabled:
+		return Trakt.get_show_play_count_specials(id)
+	else:
+		return Trakt.get_show_play_count(id)
 
 @plugin.cached(TTL=60)
 def list_seasons_tvdb(id, flatten):
@@ -527,7 +602,7 @@ def list_seasons_tvdb(id, flatten):
 	show_info = meta_info.get_tvshow_metadata_tvdb(show, banners=False)
 	items = []
 	for (season_num, season) in show.items():
-		if season_num == 0 and not False:
+		if season_num == 0 and not specialsenabled:
 			continue
 		elif not season.has_aired(flexible=False):
 			continue
@@ -538,21 +613,54 @@ def list_seasons_tvdb(id, flatten):
 					('OpenInfo', 'RunScript(script.extendedinfo,info=seasoninfo,tvshow=%s,season=%s)' % (show_info['name'], season_num))]
 			else:
 				context_menu = []
-			items.append(
-				{
+			properties = {}
+			try:
+				if traktenabled and countenabled:
+					playdata = get_show_play_count(Trakt.find_trakt_ids('tvdb', show_info['tvdb_id'], 'show')['trakt'])
+					season_index = nav_base.get_play_count_info(playdata, season_num)
+					properties = {
+									'TotalSeasons': len(playdata['seasons']),
+									'TotalEpisodes': playdata['seasons'][season_index]['aired'],
+									'WatchedEpisodes': playdata['seasons'][season_index]['completed'],
+									'UnWatchedEpisodes': playdata['seasons'][season_index]['aired'] - playdata['seasons'][season_index]['completed']
+								}
+					if properties['UnWatchedEpisodes'] == 0:
+						season_info.update({'playcount': 1})
+			except:
+				pass
+			seasonitem = {
 					'label': 'Season %s' % season_num,
 					'path': plugin.url_for('tv_season', id=id, season_num=season_num),
 					'context_menu': context_menu,
 					'info': season_info,
+					'properties': properties,
 					'thumbnail': season_info['poster'],
 					'poster': season_info['poster'],
 					'fanart': season_info['fanart']
-				})
+				}
+			if enablefanart:
+				try:
+					art = get_fanarttv_art(show_info['tvdb_id'], query='season', season=season_num)
+					art = checkart(art)
+					seasonitem.update(art)
+				except:
+					pass
+			items.append(seasonitem)
 		elif flatten == 'all':
 			items += list_episodes_tvdb(id, season_num)
 	if flatten == 'one':
 		items = list_episodes_tvdb(id, '1')
 	return items
+
+def checkart(item):
+	art = {}
+	for key, val in item.items():
+		if val != '':
+			art.update({key: val})
+	return art
+
+def get_fanarttv_art(id, query='tv', season=False):
+	return fanarttv.get(id, query, season)
 
 @plugin.cached(TTL=60)
 def list_episodes_tvdb(id, season_num):
@@ -568,8 +676,21 @@ def list_episodes_tvdb(id, season_num):
 			break
 		episode_info = meta_info.get_episode_metadata_tvdb(season_info, episode)
 		context_menu = []
-		items.append(
-			{
+		properties = {}
+		try:
+			if traktenabled and countenabled:
+				playdata = get_show_play_count(Trakt.find_trakt_ids('tvdb', show_info['tvdb_id'], 'show')['trakt'])
+				season_index = nav_base.get_play_count_info(playdata, season_num)
+				properties = {
+								'TotalSeasons': len(playdata['seasons']),
+								'TotalEpisodes': playdata['seasons'][season_index]['aired'],
+								# 'WatchedEpisodes': playdata['seasons'][season_index]['completed'],
+								# 'UnWatchedEpisodes': playdata['seasons'][season_index]['aired'] - playdata['seasons'][season_index]['completed']
+							}
+				episode_info.update({'playcount': nav_base.get_play_count_info(playdata, season_num, episode_num)})
+		except:
+			pass
+		episodeitem = {
 				'label': episode_info['title'],
 				'path': plugin.url_for('tv_play', id=id, season=season_num, episode=episode_num, usedefault=True),
 				'context_menu': context_menu,
@@ -577,10 +698,20 @@ def list_episodes_tvdb(id, season_num):
 				'is_playable': True,
 				'info_type': 'video',
 				'stream_info': {'video': {}},
+				'properties': properties,
 				'thumbnail': episode_info['poster'],
 				'poster': season_info['poster'],
 				'fanart': episode_info['fanart']
-			})
+			}
+
+		if enablefanart:
+			try:
+				art = get_fanarttv_art(show_info['tvdb_id'], query='episode', season=season_num)
+				art = checkart(art)
+				episodeitem.update(art)
+			except:
+				pass
+		items.append(episodeitem)
 	return items
 
 def tmdb_to_tvdb(tmdb_show):
@@ -661,7 +792,7 @@ def lists_trakt_my_tv_lists():
 			})
 	return plugin.finish(items=items, sort_methods=SORT)
 
-@plugin.route('/my_trakt/tv_lists/trakt_liked_tv_list/<page>')
+@plugin.route('/my_trakt/tv_lists/trakt_liked_tv_list/<page>/')
 def lists_trakt_liked_tv_lists(page):
 	lists, pages = Trakt.get_liked_lists(page)
 	items = []
@@ -730,11 +861,31 @@ def _lists_trakt_show_tv_list(list_items):
 			show_info = meta_info.get_tvshow_metadata_trakt(show, genres_dict)
 			season_info = meta_info.get_season_metadata_trakt(show_info,season, genres_dict)
 			label = '%s - Season %s' % (show['title'], season['number'])
+			properties = {}
+			try:
+				if traktenabled and countenabled:
+					if 'trakt' in list_item['show']['ids'].keys() and list_item['show']['ids']['trakt'] != '':
+						id = list_item['show']['ids']['trakt']
+					else:
+						id = Trakt.find_trakt_ids('tvdb', tvdb_id, 'show')['trakt']
+					playdata = get_show_play_count(id)
+					season_index = nav_base.get_play_count_info(playdata, season['number'])
+					properties = {
+									'TotalSeasons': len(playdata['seasons']),
+									'TotalEpisodes': playdata['seasons'][season_index]['aired'],
+									'WatchedEpisodes': playdata['seasons'][season_index]['completed'],
+									'UnWatchedEpisodes': playdata['seasons'][season_index]['aired'] - playdata['seasons'][season_index]['completed']
+								}
+					if properties['UnWatchedEpisodes'] == 0:
+						season_info.update({'playcount': 1})
+			except:
+				pass
 			item = (
 				{
 					'label': label,
 					'path': plugin.url_for('tv_season', id=tvdb_id, season_num=list_item['season']['number']),
 					'info': season_info,
+					'properties': properties,
 					'thumbnail': season_info['poster'],
 					'poster': season_info['poster'],
 					'fanart': season_info['fanart']
@@ -747,6 +898,24 @@ def _lists_trakt_show_tv_list(list_items):
 			episode_number = episode['number']
 			show_info = meta_info.get_tvshow_metadata_trakt(show, genres_dict)
 			episode_info = meta_info.get_episode_metadata_trakt(show_info, episode)
+			properties = {}
+			try:
+				if traktenabled and countenabled:
+					if 'trakt' in list_item['show']['ids'].keys() and list_item['show']['ids']['trakt'] != '':
+						id = list_item['show']['ids']['trakt']
+					else:
+						id = Trakt.find_trakt_ids('tvdb', tvdb_id, 'show')['trakt']
+					playdata = get_show_play_count(id)
+					season_index = nav_base.get_play_count_info(playdata, season_number, episode_number)
+					properties = {
+									'TotalSeasons': len(playdata['seasons']),
+									'TotalEpisodes': playdata['seasons'][season_index]['aired'],
+									# 'WatchedEpisodes': playdata['seasons'][season_index]['completed'],
+									# 'UnWatchedEpisodes': playdata['seasons'][season_index]['aired'] - playdata['seasons'][season_index]['completed']
+								}
+					episode_info.update({'playcount': nav_base.get_play_count_info(playdata, season_number, episode_number)})
+			except:
+				pass
 			label = '%s - S%sE%s - %s' % (show_info['title'], season_number, episode_number, episode_info['title'])
 			item = (
 				{
@@ -756,10 +925,19 @@ def _lists_trakt_show_tv_list(list_items):
 					'is_playable': True,
 					'info_type': 'video',
 					'stream_info': {'video': {}},
+					'properties': properties,
 					'thumbnail': episode_info['poster'],
 					'poster': episode_info['poster'],
 					'fanart': episode_info['fanart']
 				})
+
+			if enablefanart:
+				try:
+					art = get_fanarttv_art(tvdb_id)
+					art = checkart(art)
+					item.update(art)
+				except:
+					pass
 		if item is not None:
 			items.append(item)
 	return items

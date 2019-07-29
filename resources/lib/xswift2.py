@@ -6,18 +6,18 @@ except ImportError:
 import xbmc, xbmcplugin, xbmcgui, xbmcaddon
 
 VIEW_MODES = {
-    'thumbnail': {
-        'skin.confluence': 500,
-        'skin.aeon.nox': 551,
-        'skin.confluence-vertical': 500,
-        'skin.jx720': 52,
-        'skin.pm3-hd': 53,
-        'skin.rapier': 50,
-        'skin.simplicity': 500,
-        'skin.slik': 53,
-        'skin.touched': 500,
-        'skin.transparency': 53,
-        'skin.xeebo': 55
+	'thumbnail': {
+		'skin.confluence': 500,
+		'skin.aeon.nox': 551,
+		'skin.confluence-vertical': 500,
+		'skin.jx720': 52,
+		'skin.pm3-hd': 53,
+		'skin.rapier': 50,
+		'skin.simplicity': 500,
+		'skin.slik': 53,
+		'skin.touched': 500,
+		'skin.transparency': 53,
+		'skin.xeebo': 55
 	}}
 
 class _PersistentDictMixin(object):
@@ -38,7 +38,7 @@ class _PersistentDictMixin(object):
 	def sync(self):
 		with self.lock:
 			self._sync()
-            
+			
 	def _sync(self):
 		if self.flag == 'r':
 			return
@@ -295,12 +295,15 @@ class ListItem(object):
 			'poster': kwargs.get('poster'),
 			'banner': kwargs.get('banner'),
 			'fanart': kwargs.get('fanart'),
+			'clearlogo': kwargs.get('clearlogo'),
+			'clearart': kwargs.get('clearart'),
 			'landscape': kwargs.get('landscape')
 			}
+
 		if selected is not None:
 			listitem.selected = selected
 		if info:
-			listitem.set_info(info_type, info)
+			listitem.set_info(info_type, listitem.clean_info(info))
 		if is_playable:
 			listitem.playable = True
 			listitem.is_folder = False
@@ -308,6 +311,8 @@ class ListItem(object):
 			if hasattr(properties, 'items'):
 				properties = properties.items()
 			for key, val in properties:
+				if not isinstance(val, (str, unicode)):
+					val = str(val)
 				listitem.set_property(key, val)
 		if stream_info:
 			for stream_type, stream_values in stream_info.items():
@@ -316,12 +321,24 @@ class ListItem(object):
 			listitem.add_context_menu_items(context_menu, replace_context_menu)
 		return listitem
 
+	def clean_info(self, info):
+
+		keys_to_pop = ['fanart', 'imdb_id', 'name', 'poster', 'tmdb', 'trakt_id', 'tvdb_id']
+
+		for i in keys_to_pop:
+			try:
+				info.pop(i, None)
+			except:
+				pass
+
+		return info
+
 class SortMethod(object):
 
 	@classmethod
 	def from_string(cls, sort_method):
 		return getattr(cls, sort_method.upper())
-    
+	
 class XBMCMixin(object):
 
 	_function_cache_name = '.functions'
@@ -379,12 +396,12 @@ class XBMCMixin(object):
 						storage = TimedStorage(filename, file_format, TTL)
 					unsynced_storages[filename] = storage
 		return storage
-                
+				
 	def get_storage(self, name='main', file_format='pickle', TTL=None):
 		if not hasattr(self, '_unsynced_storages'):
 			self._unsynced_storages = {}
 		return XBMCMixin.get_storage_s(self._unsynced_storages, self.storage_path, name, file_format, TTL)
-        
+		
 	def temp_fn(self, path):
 		return os.path.join(xbmc.translatePath('special://temp/'), path)
 
@@ -511,7 +528,7 @@ class XBMCMixin(object):
 		return self.addon.getAddonInfo('fanart')
 
 	def get_media_icon(self, icon):
-		addon_path = self.addon.getAddonInfo('path')    
+		addon_path = self.addon.getAddonInfo('path')	
 		return os.path.join(addon_path, 'resources', 'media', icon + '.png')
 
 	def _listitemify(self, item):

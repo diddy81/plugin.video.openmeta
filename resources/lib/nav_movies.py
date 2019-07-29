@@ -9,9 +9,13 @@ from resources.lib import lib_movies
 from resources.lib import playrandom
 from resources.lib import play_movies
 from resources.lib.rpc import RPC
+from resources.lib import fanarttv
 from resources.lib.xswift2 import plugin
 
 
+enablefanart = plugin.get_setting('enablefanart', bool)
+countenabled = plugin.get_setting('countenabled', bool)
+traktenabled = True if plugin.get_setting('trakt_access_token', unicode) != '' else False
 SORT = [
 	xbmcplugin.SORT_METHOD_UNSORTED,
 	xbmcplugin.SORT_METHOD_LABEL,
@@ -28,7 +32,7 @@ SORTRAKT = [
 	xbmcplugin.SORT_METHOD_PLAYCOUNT,
 	xbmcplugin.SORT_METHOD_DURATION]
 
-@plugin.route('/movies/tmdb/blockbusters/<page>')
+@plugin.route('/movies/tmdb/blockbusters/<page>/')
 def tmdb_movies_blockbusters(page, raw=False):
 	from resources.lib.TheMovieDB import Discover
 	result = Discover().movie(language='en', append_to_response='external_ids,videos', **{'page': page, 'sort_by': 'revenue.desc'})
@@ -45,7 +49,7 @@ def tmdb_movies_play_random_blockbuster():
 		result.update(tmdb_movies_blockbusters(i, raw=True))
 	tmdb_movies_play_random(result)
 
-@plugin.route('/movies/tmdb/now_playing/<page>')
+@plugin.route('/movies/tmdb/now_playing/<page>/')
 def tmdb_movies_now_playing(page, raw=False):
 	from resources.lib.TheMovieDB import Movies
 	result = Movies().now_playing(language='en', page=page, append_to_response='external_ids,videos')
@@ -63,7 +67,7 @@ def tmdb_movies_play_random_now_playing():
 	tmdb_movies_play_random(result)
 
 
-@plugin.route('/movies/tmdb/popular/<page>')
+@plugin.route('/movies/tmdb/popular/<page>/')
 def tmdb_movies_popular(page, raw=False):
 	from resources.lib.TheMovieDB import Movies
 	result = Movies().popular(language='en', page=page)
@@ -81,7 +85,7 @@ def tmdb_movies_play_random_popular():
 	tmdb_movies_play_random(result)
 
 
-@plugin.route('/movies/tmdb/top_rated/<page>')
+@plugin.route('/movies/tmdb/top_rated/<page>/')
 def tmdb_movies_top_rated(page, raw=False):
 	from resources.lib.TheMovieDB import Movies
 	result = Movies().top_rated(language='en', page=page, append_to_response='external_ids,videos')
@@ -98,7 +102,7 @@ def tmdb_movies_play_random_top_rated():
 		result.update(tmdb_movies_top_rated(i, raw=True))
 	tmdb_movies_play_random(result)
 
-@plugin.route('/movies/trakt/search/<term>/<page>')
+@plugin.route('/movies/trakt/search/<term>/<page>/')
 def trakt_movies_search_term(term, page):
 	results, pages = Trakt.search_for_movie_paginated(term, page)
 	return list_trakt_search_items(results, pages, page)
@@ -116,7 +120,7 @@ def trakt_movies_play_random_latest_releases():
 	results = trakt_movies_latest_releases(raw=True)
 	trakt_movies_play_random(results)
 
-@plugin.route('/movies/trakt/imdb_top_rated_movies/<page>')
+@plugin.route('/movies/trakt/imdb_top_rated_movies/<page>/')
 def trakt_movies_imdb_top_rated(page, raw=False):
 	results, pages = Trakt.get_imdb_top_rated_movies(page)
 	if raw:
@@ -132,7 +136,7 @@ def trakt_movies_play_random_imdb_top_rated():
 		result.extend(trakt_movies_imdb_top_rated(i, raw=True))
 	trakt_movies_play_random(result)
 
-@plugin.route('/movies/trakt/watched/<page>')
+@plugin.route('/movies/trakt/watched/<page>/')
 def trakt_movies_watched(page, raw=False):
 	results, pages = Trakt.get_watched_movies_paginated(page)
 	if raw:
@@ -148,7 +152,7 @@ def trakt_movies_play_random_watched():
 		result.extend(trakt_movies_watched(i, raw=True))
 	trakt_movies_play_random(result)
 
-@plugin.route('/movies/trakt/collected/<page>')
+@plugin.route('/movies/trakt/collected/<page>/')
 def trakt_movies_collected(page, raw=False):
 	results, pages = Trakt.get_collected_movies_paginated(page)
 	if raw:
@@ -164,7 +168,7 @@ def trakt_movies_play_random_collected():
 		result.extend(trakt_movies_collected(i, raw=True))
 	trakt_movies_play_random(result)
 
-@plugin.route('/movies/trakt/popular/<page>')
+@plugin.route('/movies/trakt/popular/<page>/')
 def trakt_movies_popular(page, raw=False):
 	results, pages = Trakt.get_popular_movies_paginated(page)
 	if raw:
@@ -181,7 +185,7 @@ def trakt_movies_play_random_popular():
 	trakt_movies_play_random(result)
 
 
-@plugin.route('/movies/trakt/trending/<page>')
+@plugin.route('/movies/trakt/trending/<page>/')
 def trakt_movies_trending(page, raw=False):
 	results, pages = Trakt.get_trending_movies_paginated(page)
 	if raw:
@@ -198,7 +202,7 @@ def trakt_movies_play_random_trending():
 	trakt_movies_play_random(result)
 
 
-@plugin.route('/movies/tmdb/search_term/<term>/<page>')
+@plugin.route('/movies/tmdb/search_term/<term>/<page>/')
 def tmdb_movies_search_term(term, page):
 	from resources.lib.TheMovieDB import Search
 	result = Search().movie(query=term, language='en', page=page, append_to_response='external_ids,videos')
@@ -226,7 +230,7 @@ def tmdb_movies_genres():
 		} for id, name in genres.items()], key=lambda k: k['label'])
 	return plugin.finish(items=items, sort_methods=SORT)
 
-@plugin.route('/movies/genre/<id>/<page>')
+@plugin.route('/movies/genre/<id>/<page>/')
 def tmdb_movies_genre(id, page, raw=False):
 	from resources.lib.TheMovieDB import Genres
 	result = Genres(id).movies(id=id, language='en', page=page)
@@ -443,7 +447,14 @@ def movies_play_choose_player(src, id, usedefault):
 
 @plugin.route('/movies/play/<src>/<id>')
 def movies_play(src, id, usedefault='True'):
-	movies_play_choose_player(src, id, usedefault)
+	playaction = plugin.get_setting('movies_default_action', int)
+	if playaction == 1 and xbmc.getCondVisibility('system.hasaddon(script.extendedinfo)') and not plugin.getProperty('infodialogs.active'):
+		from resources.lib.play_base import action_cancel
+		action_cancel()
+		src = 'id' if src == 'tmdb' else 'imdb_id'
+		xbmc.executebuiltin('RunScript(script.extendedinfo,info=extendedinfo,%s=%s)' % (src, id))
+	else:
+		movies_play_choose_player(src, id, usedefault)
 
 @plugin.route('/movies/play_by_name/<name>/<lang>')
 def movies_play_by_name(name, lang='en', usedefault='True'):
@@ -490,12 +501,12 @@ def make_movie_item(movie_info):
 		except:
 			tmdb_id = False
 	try:
-		imdb_id = movie_info.get('imdb')
+		imdb_id = movie_info.get('imdbnumber')
 	except:
 		imdb_id = ''
 	if imdb_id == '':
 		try:
-			imdb_id = info['imdb']
+			imdb_id = info['imdb_id']
 		except:
 			imdb_id = False
 	if tmdb_id:
@@ -513,7 +524,19 @@ def make_movie_item(movie_info):
 	else:
 		context_menu = [
 			('Add to library','RunPlugin(%s)' % plugin.url_for('movies_add_to_library', src=src, id=id))]
-	return {
+	try:
+		if traktenabled and countenabled:
+			if 'trakt_id' in movie_info.keys() and movie_info['trakt_id'] != '':
+				movie_id = movie_info['trakt_id']
+			elif tmdb_id != '':
+				movie_id = Trakt.find_trakt_ids('tmdb', tmdb_id, 'movie')['trakt']
+			else:
+				movie_id = Trakt.find_trakt_ids('imdb', imdb_id, 'movie')['trakt']
+			playdata = Trakt.get_movie_history(movie_id)
+			movie_info.update({'playcount': len([k for d in playdata for k in d.keys() if k == 'watched_at'])})
+	except:
+		pass
+	movieitem = {
 		'label': movie_info['title'],
 		'path': plugin.url_for('movies_play', src=src, id=id, usedefault=True),
 		'context_menu': context_menu,
@@ -526,6 +549,24 @@ def make_movie_item(movie_info):
 		'stream_info': {'video': {}},
 		'info': movie_info
 		}
+	if enablefanart:
+		try:
+			art = get_fanarttv_art(id)
+			art = checkart(art)
+			movieitem.update(art)
+		except:
+			pass
+	return movieitem
+
+def checkart(item):
+	art = {}
+	for key, val in item.items():
+		if val != '':
+			art.update({key: val})
+	return art
+
+def get_fanarttv_art(id, query='movies', season=False):
+	return fanarttv.get(id, query, season)
 
 @plugin.route('/my_trakt/movie_lists/movies/recommendations')
 def trakt_movies_recommendations(raw=False):
@@ -564,7 +605,7 @@ def lists_trakt_my_movie_lists():
 			})
 	return plugin.finish(items=items, sort_methods=SORT)
 
-@plugin.route('/my_trakt/movie_list/trakt_liked_movie_list/<page>')
+@plugin.route('/my_trakt/movie_list/trakt_liked_movie_list/<page>/')
 def lists_trakt_liked_movie_lists(page):
 	lists, pages = Trakt.get_liked_lists(page)
 	items = []

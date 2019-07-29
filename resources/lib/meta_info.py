@@ -45,7 +45,7 @@ def get_trakt_movie_metadata(movie, genres_dict=None):
 	if not info['playcount'] and movie.get('watched'):
 		info['playcount'] = 1
 	info['tmdb'] = movie['ids'].get('tmdb')
-	info['trakt_id'] = movie['ids'].get('trakt_id')
+	info['trakt_id'] = movie['ids'].get('trakt')
 	info['imdbnumber'] = movie['ids'].get('imdb')
 	info['imdb_id'] = movie['ids'].get('imdb')
 	info['mediatype'] = 'movie'
@@ -85,7 +85,7 @@ def get_tvshow_metadata_trakt(show, genres_dict=None):
 	if not info['playcount'] and show.get('watched'):
 		info['playcount'] = 1
 	info['tmdb'] = show['ids'].get('tmdb')
-	info['trakt_id'] = show['ids'].get('trakt_id')
+	info['trakt_id'] = show['ids'].get('trakt')
 	info['imdb_id'] = show['ids'].get('imdb')
 	info['tvdb_id'] = show['ids'].get('tvdb')
 	if info['tmdb'] == None:
@@ -130,7 +130,7 @@ def get_tvshow_metadata_tvdb(tvdb_show, banners=True):
 	info['year'] = tvdb_show.get('year', 0)
 	info['studio'] = tvdb_show.get('network','')
 	info['imdb_id'] = tvdb_show.get('imdb_id', '')
-	info['duration'] = int(tvdb_show.get('runtime') or 0)
+	info['duration'] = int(tvdb_show.get('runtime') or 0) * 60
 	info['mediatype'] = 'tvshow'
 	return info
 

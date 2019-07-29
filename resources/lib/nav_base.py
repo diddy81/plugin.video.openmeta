@@ -229,3 +229,10 @@ def tmdb_tv_genres():
 	if genres:
 		return genres
 	return None
+
+def get_play_count_info(playdata, season_num, episode_num=False):
+	season_index = next((index for (index, d) in enumerate(playdata['seasons']) if d["number"] == season_num), None)
+	if episode_num:
+		episode_index = next((index for (index, d) in enumerate(playdata['seasons'][season_index]['episodes']) if d["number"] == episode_num), None)
+		return 1 if playdata['seasons'][season_index]['episodes'][episode_index]['completed'] == True else 0
+	return season_index

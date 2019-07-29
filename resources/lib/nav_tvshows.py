@@ -418,7 +418,7 @@ def list_trakt_episodes(result):
 		info = meta_info.get_tvshow_metadata_trakt(item['show'], genres_dict)
 		episode_info = meta_info.get_episode_metadata_trakt(info, episode)
 		episode_info['title'] = '%s (%02dx%02d): %s' % (tvshow_title, season_num, episode_num, episode_title)
-		context_menu = []
+		context_menu = [('Browse Series', 'Container.Update(%s)' % plugin.url_for('tv_tvshow', id=show_id))]
 		showdata = TVDB[int(show_id)]
 		extradata = play_tvshows.get_episode_parameters(showdata, season_num, episode_num)
 		properties = {}
@@ -437,7 +437,7 @@ def list_trakt_episodes(result):
 			pass
 		episodeitem	= {
 				'label': episode_info['title'],
-				'path': plugin.url_for('tv_play', id=id, season=season_num, episode=episode_num, usedefault=True),
+				'path': plugin.url_for('tv_play', id=show_id, season=season_num, episode=episode_num, usedefault=True),
 				'context_menu': context_menu,
 				'info': episode_info,
 				'is_playable': True,

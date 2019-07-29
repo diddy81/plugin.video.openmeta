@@ -23,7 +23,7 @@
 			</item>
 			<item library="browseseries.py">
                 <label>Browse Series</label>
-                <visible>String.StartsWith(ListItem.path,plugin://plugin.video.openmeta/)+String.IsEqual(ListItem.dbtype,episode)</visible>
+                <visible>String.StartsWith(ListItem.path,plugin://plugin.video.openmeta/)+String.IsEqual(ListItem.dbtype,episode)+!String.IsEqual(System.CurrentWindow,Videos)</visible>
             </item>
 		</menu>
 	</extension>

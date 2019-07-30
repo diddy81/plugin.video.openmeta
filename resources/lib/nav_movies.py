@@ -517,12 +517,7 @@ def make_movie_item(movie_info):
 		src = 'imdb'
 	else:
 		plugin.notify('tmdb or imdb id', 'not found', plugin.get_addon_icon(), 3000)
-	if xbmc.getCondVisibility('system.hasaddon(script.extendedinfo)'):
-		context_menu = [
-			('Movie trailer', 'RunScript(script.extendedinfo,info=playtrailer,id=%s)' % id),
-			('Add to library','RunPlugin(%s)' % plugin.url_for('movies_add_to_library', src=src, id=id))]
-	else:
-		context_menu = [
+	context_menu = [
 			('Add to library','RunPlugin(%s)' % plugin.url_for('movies_add_to_library', src=src, id=id))]
 	try:
 		if traktenabled and countenabled:

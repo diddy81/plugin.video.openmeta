@@ -537,7 +537,6 @@ def make_tvshow_item(info):
 	if xbmc.getCondVisibility('system.hasaddon(script.extendedinfo)'):
 		context_menu = [
 			('OpenInfo', 'RunScript(script.extendedinfo,info=extendedtvinfo,tvdb_id=%s)' % tvdb_id),
-			('TV trailer', 'RunScript(script.extendedinfo,info=playtvtrailer,tvdb_id=%s)' % tvdb_id),
 			('Add to library', 'RunPlugin(%s)' % plugin.url_for('tv_add_to_library', id=tvdb_id))]
 	else:
 		context_menu = [

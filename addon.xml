@@ -25,6 +25,10 @@
                 <label>Browse Series</label>
                 <visible>String.StartsWith(ListItem.path,plugin://plugin.video.openmeta/)+String.IsEqual(ListItem.dbtype,episode)+!String.IsEqual(System.CurrentWindow,Videos)</visible>
             </item>
+			<item library="trailer.py">
+				<label>Play Trailer</label>
+				<visible>String.StartsWith(ListItem.path,plugin://plugin.video.openmeta/)+[String.IsEqual(ListItem.dbtype,tvshow) | String.IsEqual(ListItem.dbtype,movie)]+system.hasaddon(script.extendedinfo)</visible>
+            </item>
 		</menu>
 	</extension>
 	<extension point="xbmc.addon.metadata">

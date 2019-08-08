@@ -384,7 +384,6 @@ def list_tvshows(response):
 	return items
 
 def list_trakt_episodes(result):
-	genres_dict = dict([(x['slug'], x['name']) for x in Trakt.get_genres('shows')])
 	items = []
 	for item in result:
 		if 'episode' in item:
@@ -425,16 +424,17 @@ def list_trakt_episodes(result):
 				episode_title = episode.get('title').encode('utf-8')
 		else:
 			episode_title = 'TBA'
-		info = meta_info.get_tvshow_metadata_trakt(item['show'], genres_dict)
+		info = meta_info.get_tvshow_metadata_trakt(item['show'])
 		episode_info = meta_info.get_episode_metadata_trakt(info, episode)
 		episode_info['title'] = '%s (%02dx%02d): %s' % (tvshow_title, season_num, episode_num, episode_title)
 		context_menu = []
-		showdata = TVDB[int(show_id)]
-		extradata = play_tvshows.get_episode_parameters(showdata, season_num, episode_num)
 		properties = {}
 		try:
-			if traktenabled and countenabled:
-				playdata = get_show_play_count(info['trakt_id'])
+			if countenabled:
+				if item.get('playdata'):
+					playdata = item['playdata']
+				else:
+					playdata = get_show_play_count(info['trakt_id'])
 				season_index = nav_base.get_play_count_info(playdata, season_num)
 				properties = {
 								'TotalSeasons': len(playdata['seasons']),
@@ -454,8 +454,8 @@ def list_trakt_episodes(result):
 				'info_type': 'video',
 				'stream_info': {'video': {}},
 				'properties': properties,
-				'thumbnail': extradata['thumbnail'],
-				'poster': extradata['poster'],
+				'thumbnail': episode_info['thumbnail'],
+				'poster': episode_info['poster'],
 				'fanart': episode_info['fanart']
 			}
 
@@ -741,23 +741,8 @@ def trakt_tv_upcoming_episodes(raw=False):
 
 @plugin.route('/my_trakt/tv_lists/tv_episodes_next')
 def trakt_tv_next_episodes(raw=False):
-	items = []
-	result = Trakt.get_next_episodes()
-	for episode in result:
-		trakt_id = episode['show']['ids']['trakt']
-		episode_info = Trakt.get_episode(trakt_id, episode['season'], episode['number'])
-		first_aired_string = episode_info['first_aired']
-		episode['first_aired'] = first_aired_string
-		if int(first_aired_string[:4]) < 1970:
-			items.append(episode)
-		elif first_aired_string:
-			first_aired = time.mktime(time.strptime(first_aired_string[:19], '%Y-%m-%dT%H:%M:%S'))
-			if first_aired < time.time():
-				items.append(episode)
-	if raw:
-		return items
-	else:
-		return list_trakt_episodes(items)
+	result = Trakt.get_next_episodes(specialsenabled)
+	return list_trakt_episodes(result)
 
 @plugin.route('/my_trakt/tv_lists/tv/watchlist')
 def trakt_tv_watchlist(raw=False):

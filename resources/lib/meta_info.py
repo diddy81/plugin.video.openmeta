@@ -67,7 +67,7 @@ def get_trakt_movie_metadata(movie, genres_dict=None):
 		info['trailer'] = make_trailer(movie['trailer'])
 	return info
 
-def get_tvshow_metadata_trakt(show, genres_dict=None):
+def get_tvshow_metadata_trakt(show):
 	info = {}
 	info['mediatype'] = 'tvshow'
 	info['title'] = show['title']
@@ -99,11 +99,10 @@ def get_tvshow_metadata_trakt(show, genres_dict=None):
 	images = item_images('tv', tmdb_id=info['tmdb'], imdb_id=info['imdb_id'], tvdb_id=info['tvdb_id'], name=info['title'])
 	info['poster'] = images[0]
 	info['fanart'] = images[1]
-	if genres_dict:
-		try:
-			info['genre'] = u' / '.join([genres_dict[x] for x in show['genres']])
-		except:
-			pass
+	try:
+		info['genre'] = u' / '.join(x for x in show['genres'])
+	except:
+		pass
 	if show.get('trailer'):
 		info['trailer'] = make_trailer(show['trailer'])
 	return info
@@ -270,6 +269,7 @@ def get_episode_metadata_trakt(season_metadata, episode):
 	info['plotoutline'] = episode.get('overview','')
 	info['votes'] = episode.get('votes','')
 	info['mediatype'] = 'episode'
+	info['thumbnail'] = item_images('episode', tmdb_id=info['tmdb'], imdb_id=info['imdb_id'], tvdb_id=info['tvdb_id'], name=info['title'], season=info['season'], episode=info['episode'])
 	if not info['playcount'] and episode.get('watched'):
 		info['playcount'] = 1
 	return info
@@ -291,8 +291,8 @@ def get_episode_metadata_tvmaze(season_metadata, episode):
 		info['poster'] = episode['image']['original']
 	return info
 
-def item_images(type, tmdb_id=None, imdb_id=None, tvdb_id=None, name=None):
-	from resources.lib.TheMovieDB import Movies, TV, Find
+def item_images(type, tmdb_id=None, imdb_id=None, tvdb_id=None, name=None, season=None, episode=None):
+	from resources.lib.TheMovieDB import Movies, TV, Find, TV_Episodes
 	poster = ''
 	fanart = ''
 	response = ''
@@ -304,15 +304,21 @@ def item_images(type, tmdb_id=None, imdb_id=None, tvdb_id=None, name=None):
 		response = TV(tmdb_id).info()
 	elif type == 'tv' and tvdb_id != None and tvdb_id != '':
 		response = Find(tvdb_id).info(external_source='tvdb_id')
+	elif type == 'episode' and tmdb_id != None and tmdb_id != '':
+		response = TV_Episodes(tmdb_id, season, episode).info()
+		return 'https://image.tmdb.org/t/p/original/%s' % response.get('still_path')
+	elif type == 'episode' and tvdb_id != None and tvdb_id != '':
+		response = TV_Episodes(Find(tvdb_id).info(external_source='tvdb_id').get('tv_results')[0].get('id'), season, episode).info()
+		return 'https://image.tmdb.org/t/p/original/%s' % response.get('still_path')
 	elif imdb_id != None and imdb_id != '':
 		response = Find(imdb_id).info(external_source='imdb_id')
 	if response == '':
 		return False
-	if tmdb_id == None:
+	if tmdb_id == None or tmdb_id == '':
 		if type == 'movie':
 			response = response.get('movie_results')
 		elif type == 'tv':
-			response = response.get('tv_results')
+			response = response.get('tv_results')[0]
 		elif type == 'season':
 			response = response.get('season_results')
 		elif type == 'episode':

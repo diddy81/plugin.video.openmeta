@@ -246,7 +246,7 @@ def search_for_tvshow_paginated(show_name, page):
 	return results, pages
 
 @plugin.cached(TTL=60, cache='Trakt')
-def get_next_episodes():
+def get_next_episodes(specialsenabled=False):
 	shows = call_trakt('sync/watched/shows?extended=noseasons&extended=full')
 	hidden_shows = [item['show']['ids']['trakt'] for item in get_hidden_items('progress_watched') if item['type'] == 'show']
 	items = []
@@ -255,10 +255,14 @@ def get_next_episodes():
 		id = show['ids']['trakt']
 		if id in hidden_shows:
 			continue
-		response = call_trakt('shows/%s/progress/watched?extended=full' % id)    
+		if specialsenabled:
+			response = call_trakt('shows/%s/progress/watched?extended=full&specials=true' % id)
+		else:
+			response = call_trakt('shows/%s/progress/watched?extended=full' % id)
 		if response['next_episode']:
 			next_episode = response['next_episode']
 			next_episode['show'] = show
+			next_episode['playdata'] = response
 			items.append(next_episode)
 	return items
 

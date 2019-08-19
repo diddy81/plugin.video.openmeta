@@ -323,7 +323,7 @@ class ListItem(object):
 
 	def clean_info(self, info):
 
-		keys_to_pop = ['fanart', 'imdb_id', 'name', 'poster', 'tmdb', 'trakt_id', 'tvdb_id']
+		keys_to_pop = ['fanart', 'imdb_id', 'name', 'poster', 'tmdb', 'trakt_id', 'tvdb_id', 'thumbnail']
 
 		for i in keys_to_pop:
 			try:

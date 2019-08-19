@@ -35,11 +35,11 @@ SORTRAKT = [
 	xbmcplugin.SORT_METHOD_MPAA_RATING]
 
 def list_trakt_tvshows(results, pages, page):
-	genres_dict = dict([(x['slug'], x['name']) for x in Trakt.get_genres('shows')])
+	#genres_dict = dict([(x['slug'], x['name']) for x in Trakt.get_genres('shows')])
 	try:
-		shows = [meta_info.get_tvshow_metadata_trakt(item['show'], genres_dict) for item in results]
+		shows = [meta_info.get_tvshow_metadata_trakt(item['show']) for item in results]
 	except KeyError:
-		shows = [meta_info.get_tvshow_metadata_trakt(item, genres_dict) for item in results]
+		shows = [meta_info.get_tvshow_metadata_trakt(item) for item in results]
 	items = [make_tvshow_item(show) for show in shows if show.get('tvdb_id')]
 	page = int(page)
 	pages = int(pages)
@@ -86,8 +86,8 @@ def tv_trakt_popular(page, raw=False):
 	if raw:
 		return results
 	else:
-		genres_dict = dict([(x['slug'], x['name']) for x in Trakt.get_genres('shows')])
-		shows = [meta_info.get_tvshow_metadata_trakt(item, genres_dict) for item in results]
+		#genres_dict = dict([(x['slug'], x['name']) for x in Trakt.get_genres('shows')])
+		shows = [meta_info.get_tvshow_metadata_trakt(item) for item in results]
 		items = [make_tvshow_item(show) for show in shows if show.get('tvdb_id')]
 		page = int(page)
 		pages = int(pages)
@@ -120,7 +120,7 @@ def tvdb_tv_search_term(term, page):
 	return items
 
 def list_trakt_search_items(results, pages, page):
-	shows = [meta_info.get_tvshow_metadata_trakt(item['show'], None) for item in results]
+	shows = [meta_info.get_tvshow_metadata_trakt(item['show']) for item in results]
 	items = [make_tvshow_item(show) for show in shows if show.get('tvdb_id')]
 	page = int(page)
 	pages = int(pages)
@@ -826,7 +826,7 @@ def lists_trakt_show_tv_list(user, slug, raw=False):
 
 @plugin.route('/my_trakt/tv_lists/tv/_show_tv_list/<list_items>')
 def _lists_trakt_show_tv_list(list_items):
-	genres_dict = dict([(x['slug'], x['name']) for x in Trakt.get_genres('shows')])
+	#genres_dict = dict([(x['slug'], x['name']) for x in Trakt.get_genres('shows')])
 	items = []
 	for list_item in list_items:
 		item = None
@@ -835,7 +835,7 @@ def _lists_trakt_show_tv_list(list_items):
 			tvdb_id = list_item['show']['ids']['tvdb']
 			if tvdb_id != '' and tvdb_id != None:
 				show = list_item['show']
-				info = meta_info.get_tvshow_metadata_trakt(show, genres_dict)
+				info = meta_info.get_tvshow_metadata_trakt(show)
 				item = make_tvshow_item(info)
 			else:
 				item = None
@@ -843,8 +843,8 @@ def _lists_trakt_show_tv_list(list_items):
 			tvdb_id = list_item['show']['ids']['tvdb']
 			season = list_item['season']
 			show = list_item['show']
-			show_info = meta_info.get_tvshow_metadata_trakt(show, genres_dict)
-			season_info = meta_info.get_season_metadata_trakt(show_info,season, genres_dict)
+			show_info = meta_info.get_tvshow_metadata_trakt(show)
+			season_info = meta_info.get_season_metadata_trakt(show_info,season)
 			label = '%s - Season %s' % (show['title'], season['number'])
 			properties = {}
 			try:
@@ -881,7 +881,7 @@ def _lists_trakt_show_tv_list(list_items):
 			show = list_item['show']
 			season_number = episode['season']
 			episode_number = episode['number']
-			show_info = meta_info.get_tvshow_metadata_trakt(show, genres_dict)
+			show_info = meta_info.get_tvshow_metadata_trakt(show)
 			episode_info = meta_info.get_episode_metadata_trakt(show_info, episode)
 			properties = {}
 			try:

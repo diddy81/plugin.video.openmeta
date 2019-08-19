@@ -124,7 +124,7 @@ def lists_search_for_lists_term(term, page):
 @plugin.route('/my_trakt/lists/_show_list/<list_items>')
 def _lists_trakt_show_list(list_items):
 	from resources.lib.TheMovieDB import People
-	genres_dict = Trakt.get_genres('tv')
+	#genres_dict = Trakt.get_genres('tv')
 	items = []
 	for list_item in list_items:
 		item = None
@@ -133,7 +133,7 @@ def _lists_trakt_show_list(list_items):
 			tvdb_id = list_item['show']['ids']['tvdb']
 			if tvdb_id != '' and tvdb_id != None:
 				show = list_item['show']
-				info = meta_info.get_tvshow_metadata_trakt(show, genres_dict)
+				info = meta_info.get_tvshow_metadata_trakt(show)
 				item = nav_tvshows.make_tvshow_item(info)
 			else:
 				item = None
@@ -141,8 +141,8 @@ def _lists_trakt_show_list(list_items):
 			tvdb_id = list_item['show']['ids']['tvdb']
 			season = list_item['season']
 			show = list_item['show']
-			show_info = meta_info.get_tvshow_metadata_trakt(show, genres_dict)
-			season_info = meta_info.get_season_metadata_trakt(show_info,season, genres_dict)
+			show_info = meta_info.get_tvshow_metadata_trakt(show)
+			season_info = meta_info.get_season_metadata_trakt(show_info,season)
 			label = '%s - Season %s' % (show['title'], season['number'])
 			item = (
 				{
@@ -159,7 +159,7 @@ def _lists_trakt_show_list(list_items):
 			show = list_item['show']
 			season_number = episode['season']
 			episode_number = episode['number']
-			show_info = meta_info.get_tvshow_metadata_trakt(show, genres_dict)
+			show_info = meta_info.get_tvshow_metadata_trakt(show)
 			episode_info = meta_info.get_episode_metadata_trakt(show_info, episode)
 			label = '%s - S%sE%s - %s' % (show_info['title'], season_number, episode_number, episode_info['title'])
 			item = (
